@@ -1,0 +1,14 @@
+<h4>Datos Históricos</h4>
+<div>
+      <label for="tiempo">Seleccione el tiempo: </label>
+      <select id="tiempo" [(ngModel)]="tiempoSeleccionado" (change)="repintaHistorial()">
+            <option value="15">15 minutos</option>
+            <option value="30">30 minutos</option>
+            <option value="60">60 minutos</option>
+            <option value="120">120 minutos</option>
+            <option value="300">300 minutos</option>
+      </select>
+</div>
+<canvas baseChart width="1000" height="fit" [type]="'line'" [data]="lineChartDataDB" [options]="lineChartOptionsDB"
+      [legend]="lineChartLegendDB">
+</canvas>

@@ -1,0 +1,15 @@
+p{
+    font-size: 30px;
+}
+
+h1{
+    text-align: center;
+}
+
+.mat-card{
+    background-color: #eaeded;
+}
+
+body {
+    font-family: 'Courier New', Courier, monospace;
+}
