@@ -50,10 +50,3 @@ Para esta prueba, se ha omitido la consideración de aspectos de seguridad, como
    1. **Problema:** La falta de validación de datos de entrada puede abrir la puerta a ataques de inyección.
    1. **Solución:** Implementar una estricta validación de entrada y sanitización para prevenir posibles ataques de inyección, como SQL injection o Cross-Site Scripting (XSS).
 
-
-
-**Screenshots:**
-
-
-
-
