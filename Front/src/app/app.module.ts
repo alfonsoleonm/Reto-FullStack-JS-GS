@@ -5,7 +5,7 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { MatCardModule } from '@angular/material/card';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HistorialComponent } from './historial/historial.component';
 import { SensorTempComponent } from './sensor-temp/sensor-temp.component';
 import { SensorHumedadComponent } from './sensor-humedad/sensor-humedad.component';
@@ -14,25 +14,16 @@ import { FormsModule } from '@angular/forms';
 
 //const config: SocketIoConfig = { url: 'http://localhost:3000', options: {} };
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    HistorialComponent,
-    SensorTempComponent,
-    SensorHumedadComponent
-  ],
-
-  imports: [
-    MatCardModule,
-    MatGridListModule,
-    HttpClientModule,
-    BrowserModule,
-    AppRoutingModule,
-    NgChartsModule,
-    FormsModule,
-    //SocketIoModule.forRoot(config)
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        HistorialComponent,
+        SensorTempComponent,
+        SensorHumedadComponent
+    ],
+    bootstrap: [AppComponent], imports: [MatCardModule,
+        MatGridListModule,
+        BrowserModule,
+        AppRoutingModule,
+        NgChartsModule,
+        FormsModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }
