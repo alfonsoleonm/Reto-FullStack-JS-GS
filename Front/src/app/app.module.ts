@@ -10,20 +10,25 @@ import { HistorialComponent } from './historial/historial.component';
 import { SensorTempComponent } from './sensor-temp/sensor-temp.component';
 import { SensorHumedadComponent } from './sensor-humedad/sensor-humedad.component';
 import { FormsModule } from '@angular/forms';
-// charts (ver paso 3)
+import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 
-//const config: SocketIoConfig = { url: 'http://localhost:3000', options: {} };
+const config: SocketIoConfig = { url: 'http://localhost:3000', options: {} };
 
-@NgModule({ declarations: [
-        AppComponent,
-        HistorialComponent,
-        SensorTempComponent,
-        SensorHumedadComponent
-    ],
-    bootstrap: [AppComponent], imports: [MatCardModule,
-        MatGridListModule,
-        BrowserModule,
-        AppRoutingModule,
-        NgChartsModule,
-        FormsModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
+@NgModule({
+  declarations: [
+    AppComponent,
+    HistorialComponent,
+    SensorTempComponent,
+    SensorHumedadComponent
+  ],
+  bootstrap: [AppComponent],
+  imports: [MatCardModule,
+    MatGridListModule,
+    BrowserModule,
+    AppRoutingModule,
+    NgChartsModule,
+    SocketIoModule.forRoot(config),
+    FormsModule],
+  providers: [provideHttpClient(withInterceptorsFromDi())]
+})
 export class AppModule { }
