@@ -5,9 +5,10 @@ import { ApiConnectionService } from '../services/api-connection.service';
 import { Chart, ChartConfiguration, ChartOptions, ChartEvent, ChartType } from 'chart.js';
 
 @Component({
-  selector: 'app-historial',
-  templateUrl: './historial.component.html',
-  styleUrls: ['./historial.component.css']
+    selector: 'app-historial',
+    templateUrl: './historial.component.html',
+    styleUrls: ['./historial.component.css'],
+    standalone: false
 })
 export class HistorialComponent implements OnInit {
 

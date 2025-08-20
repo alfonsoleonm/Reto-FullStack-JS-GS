@@ -6,9 +6,10 @@ import { SocketConectionService } from '../services/socket-conection.service';
 import { ApiConnectionService } from '../services/api-connection.service';
 
 @Component({
-  selector: 'app-sensor-temp',
-  templateUrl: './sensor-temp.component.html',
-  styleUrls: ['./sensor-temp.component.css']
+    selector: 'app-sensor-temp',
+    templateUrl: './sensor-temp.component.html',
+    styleUrls: ['./sensor-temp.component.css'],
+    standalone: false
 })
 export class SensorTempComponent implements OnInit {
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;

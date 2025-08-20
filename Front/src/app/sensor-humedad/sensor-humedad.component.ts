@@ -6,9 +6,10 @@ import { SocketConectionService } from '../services/socket-conection.service';
 import { ApiConnectionService } from '../services/api-connection.service';
 
 @Component({
-  selector: 'app-sensor-humedad',
-  templateUrl: './sensor-humedad.component.html',
-  styleUrls: ['./sensor-humedad.component.css']
+    selector: 'app-sensor-humedad',
+    templateUrl: './sensor-humedad.component.html',
+    styleUrls: ['./sensor-humedad.component.css'],
+    standalone: false
 })
 export class SensorHumedadComponent implements OnInit {
 
