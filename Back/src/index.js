@@ -1,71 +1,77 @@
-import { connect } from "mongoose";
-import express, { json as _json } from "express";
-const app = express();
-const server = require('http').Server(app)
+import http from 'http';
+import express from 'express';
 import cors from 'cors';
-import userRoute from "./routes/info";
-import { post } from 'request';
-app.use(cors());
-const io = require('socket.io')(server, {
-    cors: {
-        origins: ['http://localhost:4200']
-    }
+import mongoose from 'mongoose';
+import { Server as SocketIOServer } from 'socket.io';
+import userRoute from './routes/info.js';
+
+const app = express();
+
+// CORS para front en 4200
+app.use(cors({ origin: 'http://localhost:4200' }));
+app.use(express.json());
+
+// Rutas REST
+app.use('/api', userRoute);
+
+app.get('/', (_req, res) => {
+  res.send('Welcome to my API');
 });
 
-app.use(_json());
-app.use("/api", userRoute);
-app.use(cors());
-
-app.get("/", (req, res) => {
-    res.send("Welcome to my API");
+// Crear servidor HTTP y montar Socket.IO en el mismo puerto
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: { origin: 'http://localhost:4200' }
 });
 
-app.listen(4000, () => console.log("Server listening to", 4000));
-
-//conex a mongo
-connect("mongodb+srv://alfonso:admin@cluster3.rppjtme.mongodb.net/?retryWrites=true&w=majority")
-    .then(() => console.log("Conectado a base de datos"))
-    .catch((error) => console.log(error))
-
-
-var sendData
-var sockettt
+// --- Socket.IO ---
 io.on('connection', (socket) => {
-    sockettt = socket
-    socket.on('iot/sensors', (dato) => {
-        console.log("Datos BE: ", dato);
-        sendData = dato;
-        sendDataa();
-        post(
-            'http://localhost:4000/api/info',
-            { json: { sensor: "TEMP", value: dato.data[0].value, date: new Date().toLocaleString() } },
-            function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    console.log(body)
-                }
-            }
-        );
-        post(
-            'http://localhost:4000/api/info',
-            { json: { sensor: "HUM", value: dato.data[1].value, date: new Date().toLocaleString() } },
-            function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    console.log(body)
-                }
-            }
-        );
-    })
+  console.log('Socket connected:', socket.id);
 
-    console.log('Conectado al server');
+  socket.on('iot/sensors', async (dato) => {
+    console.log('Datos BE:', dato);
+
+    // Reemite a clientes Angular (evento que ya escuchamos en el front)
+    io.emit('iot/sensores', dato);
+
+    // fetch nativo de Node 20
+    try {
+      const baseUrl = 'http://localhost:4000';
+      await fetch(`${baseUrl}/api/info`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sensor: 'TEMP',
+          value: dato?.data?.[0]?.value,
+          date: new Date().toISOString()
+        })
+      });
+
+      await fetch(`${baseUrl}/api/info`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sensor: 'HUM',
+          value: dato?.data?.[1]?.value,
+          date: new Date().toISOString()
+        })
+      });
+    } catch (err) {
+      console.error('Error POST /api/info', err);
+    }
+  });
 });
 
-function sendDataa() {
-    sockettt.emit('iot/sensores', sendData);
-
-}
-
-server.listen(3000, () => {
-    console.log('escuchando en *:3000');
+// Arranque HTTP + WebSocket en el MISMO puerto
+const PORT = 4000;
+server.listen(PORT, () => {
+  console.log(`HTTP+WS escuchando en http://localhost:${PORT}`);
 });
 
-
+// --- Conexión a Mongo ---
+// (en prod, mueve la URI a una variable de entorno)
+mongoose.set('strictQuery', false);
+mongoose
+  .connect('mongodb+srv://alfonso:admin@clustertestfullstackgs.m4xlp6y.mongodb.net/?retryWrites=true&w=majority&appName=ClusterTestFullStackGS')
+  .then(() => console.log('Conectado a base de datos'))
+  .catch((error) => console.error(error));

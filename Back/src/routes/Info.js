@@ -1,23 +1,25 @@
-const express = require("express");
-var cors = require('cors')
-const router = express.Router();
-const datosSchema = require("../models/info").default
+// src/routes/info.js  (ESM)
+import { Router } from 'express';
+import datosSchema from '../models/info.js';
 
-router.use(cors());
+const router = Router();
 
-router.post("/info", (req, res) => {
-    const dato = datosSchema(req.body);
-    dato
-      .save()
-      .then((data) => res.json(data))
-      .catch((error) => res.json({ message: error }));
-  });
-
-router.get("/info", (req, res) => {
-  datosSchema
-    .find()
-    .then((data) => res.json(data))
-    .catch((error) => res.json({ message: error }));
+router.post('/info', async (req, res) => {
+  try {
+    const dato = await datosSchema.create(req.body);
+    res.json(dato);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
-module.exports = router;
 
+router.get('/info', async (_req, res) => {
+  try {
+    const data = await datosSchema.find();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+export default router;
