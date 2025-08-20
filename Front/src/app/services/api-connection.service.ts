@@ -1,20 +1,61 @@
+// Front/src/app/services/api-connection.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-@Injectable({
-  providedIn: 'root'
-})
 
-export class ApiConnectionService{
+export interface InfoDto {
+  sensor: 'TEMP' | 'HUM';
+  value: number;
+  date: string;
+  count?: number;   // solo si usas aggregate=avg1m
+}
 
-  constructor(private http: HttpClient) { }
+@Injectable({ providedIn: 'root' })
+export class ApiConnectionService {
+  private baseUrl = 'http://localhost:4000/api';
 
-  getDatos$():Observable<any>{
-    const path = 'http://localhost:4000/api/info';
-    return this.http.get<any>(path);
+  constructor(private http: HttpClient) {}
+
+  getDatos$(): Observable<InfoDto[]> {
+    return this.http.get<InfoDto[]>(`${this.baseUrl}/info`);
   }
-  setDatos$(sensor:string,value:number,date:string):Observable<any>{
-    const path = 'http://localhost:4000/api/info';
-    return this.http.post<any>(path,{sensor:sensor,value:value,date:String});
+
+  setDatos$(sensor: 'TEMP' | 'HUM', value: number, date?: string): Observable<InfoDto> {
+    const body: any = { sensor, value };
+    if (date) body.date = date;               // <- ahora sí envía el valor recibido
+    return this.http.post<InfoDto>(`${this.baseUrl}/info`, body);
+  }
+
+
+  getUltimosMin$(minutes: number, limit = 1000): Observable<InfoDto[]> {
+    const params = new HttpParams()
+      .set('minutes', String(minutes))
+      .set('limit', String(limit));
+    return this.http.get<InfoDto[]>(`${this.baseUrl}/info`, { params });
+  }
+
+  /** Rango por sensor con paginación */
+  getRango$(
+    sensor: 'TEMP' | 'HUM',
+    fromIso: string,
+    toIso: string,
+    limit = 1000,
+    skip = 0
+  ): Observable<InfoDto[]> {
+    const params = new HttpParams()
+      .set('sensor', sensor)
+      .set('from', fromIso)
+      .set('to', toIso)
+      .set('limit', String(limit))
+      .set('skip', String(skip));
+    return this.http.get<InfoDto[]>(`${this.baseUrl}/info`, { params });
+  }
+
+  getAvgPorMin$(sensor: 'TEMP' | 'HUM', minutes = 60): Observable<InfoDto[]> {
+    const params = new HttpParams()
+      .set('sensor', sensor)
+      .set('minutes', String(minutes))
+      .set('aggregate', 'avg1m');
+    return this.http.get<InfoDto[]>(`${this.baseUrl}/info`, { params });
   }
 }

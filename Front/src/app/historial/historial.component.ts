@@ -1,26 +1,27 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import Annotation from 'chartjs-plugin-annotation';
 import { BaseChartDirective } from 'ng2-charts';
-import { ApiConnectionService } from '../services/api-connection.service';
-import { Chart, ChartConfiguration, ChartOptions, ChartEvent, ChartType } from 'chart.js';
+import { Chart, ChartConfiguration, ChartOptions } from 'chart.js';
+import Annotation from 'chartjs-plugin-annotation';
+import { ApiConnectionService, InfoDto } from '../services/api-connection.service';
 
 @Component({
-    selector: 'app-historial',
-    templateUrl: './historial.component.html',
-    styleUrls: ['./historial.component.css'],
-    standalone: false
+  selector: 'app-historial',
+  templateUrl: './historial.component.html',
+  styleUrls: ['./historial.component.css'],
+  standalone: false
 })
 export class HistorialComponent implements OnInit {
-
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
-  tiempoSeleccionado: number = 15;
+  // minutos a consultar
+  tiempoSeleccionado = 15;
 
   constructor(private apiConsulta: ApiConnectionService) {
     Chart.register(Annotation);
-    this.chart?.update();
   }
+
   public lineChartDataDB: ChartConfiguration<'line'>['data'] = {
+    labels: [],
     datasets: [
       {
         data: [],
@@ -46,81 +47,49 @@ export class HistorialComponent implements OnInit {
       },
     ],
   };
-  lineChartOptionsDB: ChartOptions<'line'> = {
+
+  public lineChartOptionsDB: ChartOptions<'line'> = {
     responsive: false
   };
 
-  lineChartLegendDB = true;
+  public lineChartLegendDB = true;
 
   ngOnInit(): void {
-    this.inicializaHistorial();
+    this.cargarHistorial();
   }
 
   repintaHistorial(): void {
     this.lineChartDataDB.labels = [];
     this.lineChartDataDB.datasets[0].data = [];
     this.lineChartDataDB.datasets[1].data = [];
-    this.inicializaHistorial();
+    this.cargarHistorial();
   }
 
-  inicializaHistorial(): void {
-    this.apiConsulta.getDatos$().subscribe(data => {
-      // console.log(data);
-      // Tiempo Default 15 minutos
-      // 1. Calcular la hora actual
-      // 2. Calcular la hora actual - 15 minutos
-      // 3. Todo valor entre Hora actual a Hora actual - 15 minutos se muestra
+  private cargarHistorial(): void {
+    this.apiConsulta.getUltimosMin$(this.tiempoSeleccionado).subscribe((rows: InfoDto[]) => {
+      // Aseguramos orden por fecha
+      rows.sort((a, b) => +new Date(a.date) - +new Date(b.date));
 
-      let horaActual: Date = this.obtenerHoraActual();
+      const labels: string[] = [];
+      const tempData: number[] = [];
+      const humData: number[] = [];
 
-      let horaActualMinusDefault: Date = horaActual;
-      horaActualMinusDefault.setMinutes(horaActualMinusDefault.getMinutes() - this.tiempoSeleccionado);
+      for (const r of rows) {
+        const label = new Date(r.date).toLocaleString();
 
-      let tempDate: Date | null;
-      for (let i of data) {
-        tempDate = this.convertStringToDate(i.date);
-        if (tempDate && (tempDate > horaActualMinusDefault)) {
-          console.log("entra: " + tempDate + "porque es mayor a" + horaActualMinusDefault);
-
-          if (i.sensor == 'TEMP') {
-            this.lineChartDataDB.labels?.push(i.date);
-            this.lineChartDataDB.datasets[0].data.push(i.value);
-            this.chart?.update();
-          } else {
-            this.lineChartDataDB.datasets[1].data.push(i.value);
-            this.chart?.update();
-          }
+        if (r.sensor === 'TEMP') {
+          labels.push(label);
+          tempData.push(r.value);
+        } else if (r.sensor === 'HUM') {
+          humData.push(r.value);
         }
       }
+
+      this.lineChartDataDB.labels = labels;
+      this.lineChartDataDB.datasets[0].data = tempData;
+      this.lineChartDataDB.datasets[1].data = humData;
+
+      this.chart?.update();
     });
   }
-
-  obtenerHoraActual(): Date {
-    const ahora: Date = new Date();
-    return ahora;
-  }
-
-  convertStringToDate(dateString: string): Date | null {
-    // El formato que llega de la BD es "day/month/year, hour:minute:second"
-    const [datePart, timePart] = dateString.split(', ');
-    const [day, month, year] = datePart.split('/');
-    const [hour, minute, second] = timePart.split(':');
-
-    if (!day || !month || !year || !hour || !minute || !second) {
-      console.error("Invalid date string format");
-      return null;
-    }
-
-    const dateObject: Date = new Date(
-      parseInt(year, 10),
-      parseInt(month, 10) - 1, // Months are zero-based
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10)
-    );
-
-    return dateObject;
-  }
-
 }
