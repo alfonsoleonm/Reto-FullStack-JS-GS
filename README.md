@@ -54,3 +54,6 @@ curl -X POST http://localhost:4000/api/info \
   -d '{"sensor":"TEMP","value":25.5}'
 curl http://localhost:4000/api/info
 
+Capturas de pantalla
+<img width="1087" height="933" alt="image" src="https://github.com/user-attachments/assets/a475ed67-6751-4da7-ada7-ed0901153f6f" />
+
